@@ -25,9 +25,12 @@ scrape_time_for_filename = scrape_time.replace(':', '-').replace(' ', '_')
 rows = []
 
 for item in items:
-    # Position (rank)
+    # ID (from item id attribute)
+    item_id = item.get('id')
+
+    # Rank
     rank_tag = item.find('span', class_='rank')
-    position = int(rank_tag.text.strip('.')) if rank_tag else None
+    rank = int(rank_tag.text.strip('.')) if rank_tag else None
 
     # Title and URL
     titleline = item.find('span', class_='titleline')
@@ -50,7 +53,7 @@ for item in items:
         score_tag = subtext.find('span', class_='score')
         points = int(score_tag.text.replace(' points', '')) if score_tag else 0
 
-        # Comments
+        # Comments and check comment link
         comment_links = subtext.find_all('a')
         comments_text = comment_links[-1].text if comment_links else ''
         comments = 0
@@ -60,7 +63,8 @@ for item in items:
         points = 0
         comments = 0
 
-    rows.append([position, title, url_link, points, comments, scrape_time])
+    # Append the row
+    rows.append([item_id, rank, title, url_link, points, comments, scrape_time])
 
 # Create 'data' directory if it doesn't exist
 os.makedirs('data', exist_ok=True)
@@ -72,8 +76,8 @@ output_filename = os.path.join('data', f'hacker_news_scrape_{scrape_time_for_fil
 with open(output_filename, 'w', newline='', encoding='utf-8') as csvfile:
     writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
 
-    # Write the header
-    writer.writerow(["position", "title", "url", "points", "comments", "scrape-date"])
+    # Write header
+    writer.writerow(["id", "rank", "title", "url", "points", "comments", "scrape-date"])
 
     # Write the data rows
     for row in rows:
