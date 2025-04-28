@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
+import os
 from datetime import datetime
 
 # URL of the page to scrape
@@ -24,9 +25,9 @@ scrape_time_for_filename = scrape_time.replace(':', '-').replace(' ', '_')
 rows = []
 
 for item in items:
-    # Rank
+    # Position (rank)
     rank_tag = item.find('span', class_='rank')
-    rank = int(rank_tag.text.strip('.')) if rank_tag else None
+    position = int(rank_tag.text.strip('.')) if rank_tag else None
 
     # Title and URL
     titleline = item.find('span', class_='titleline')
@@ -59,16 +60,25 @@ for item in items:
         points = 0
         comments = 0
 
-    rows.append([rank, title, url_link, points, comments, scrape_time])
+    rows.append([position, title, url_link, points, comments, scrape_time])
 
-# Define output filename
-output_filename = f'hacker_news_scrape_{scrape_time_for_filename}.csv'
+# Create 'data' directory if it doesn't exist
+os.makedirs('data', exist_ok=True)
+
+# Define output filename inside the 'data' folder
+output_filename = os.path.join('data', f'hacker_news_scrape_{scrape_time_for_filename}.csv')
 
 # Write to CSV
 with open(output_filename, 'w', newline='', encoding='utf-8') as csvfile:
     writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+
+    # Write the header
+    writer.writerow(["position", "title", "url", "points", "comments", "scrape-date"])
+
+    # Write the data rows
     for row in rows:
         writer.writerow(row)
 
+print(f"Scraped {len(rows)} stories.")
 print(f"Data successfully written to {output_filename}")
 
